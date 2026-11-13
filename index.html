@@ -18,7 +18,7 @@
     --gap:12px;
     --w:calc((min(100vw, 440px) - 5*var(--gap)) / 4);
     --ih:calc(var(--w) * .6);
-    --b:min(var(--w), calc((100dvh - 284px - var(--ih) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / 5 - var(--gap)));
+    --b:min(var(--w), calc((100dvh - 294px - var(--ih) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) / 5 - var(--gap)));
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;background:var(--bg);color:#fff;
@@ -29,6 +29,7 @@
   *::-webkit-scrollbar{display:none;width:0;height:0}
   .app{height:100%;overflow:hidden;max-width:440px;margin:0 auto;display:flex;flex-direction:column;padding:calc(26px + env(safe-area-inset-top)) var(--gap) calc(var(--gap) + 6px + env(safe-area-inset-bottom))}
   .top{display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .prec .pl{color:#9fb0c3;font-weight:500;margin-right:5px}
   .prec{border:0;background:#1a212b;color:#ffc928;font:inherit;font-size:13px;font-weight:600;padding:8px 10px;border-radius:9px;cursor:pointer}
   .seg{display:flex;background:#1a212b;border-radius:9px;padding:2px}
   .seg button{border:0;background:transparent;color:#bbb;font:inherit;font-size:13px;padding:6px 11px;border-radius:7px;cursor:pointer}
@@ -37,6 +38,11 @@
   .opts.hide{opacity:0;pointer-events:none;height:0;margin:0;overflow:hidden}
   .opts .seg button{font-size:12px;padding:5px 9px}
   .screen{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-height:130px;padding:0 8px 10px}
+  .screen{position:relative}
+  .screen .expr,.screen .main,.screen .conv{transition:transform .25s ease,opacity .25s ease}
+  .screen.drag .expr,.screen.drag .main,.screen.drag .conv{transition:none}
+  .pullhint{position:absolute;left:0;right:0;top:0;text-align:center;font-size:14px;color:#7d8a99;opacity:0;transition:opacity .15s}
+  .pullhint.ready{color:#ffc928}
   .expr{color:#7d8a99;font-size:20px;text-align:right;min-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr}
   .main{flex:0 0 auto;color:#f4f1e8;font-weight:300;text-align:right;white-space:nowrap;overflow-x:hidden;overflow-y:visible;line-height:1.2;padding:4px 0;font-size:64px;letter-spacing:-1px}
   .expr,.conv{flex:0 0 auto}
@@ -45,15 +51,18 @@
   .conv::-webkit-scrollbar{display:none}
   .chip{direction:ltr;flex:0 0 auto}
   .chip{background:#18202a;color:#cfe3f0;border:1px solid #263243;border-radius:12px;padding:4px 9px;font-size:13px;font-variant-numeric:tabular-nums}
+  .chip.rnd{background:transparent;border:1px dashed #3a4a5e;color:#8a9bb0}
   .chip b{color:#ffc928;font-weight:500;margin-left:4px}
   .err{color:#ff6961}
   .pad{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
   .k{height:var(--b);border:0;border-radius:999px;font:inherit;font-size:calc(var(--b)*.42);color:#fff;background:var(--num);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .25s}
   .k:active,.k.press{transition:none}
   .k.n:active{background:var(--num-a)}
-  .k.f{background:var(--fn);color:#e6edf5;font-size:calc(var(--b)*.36)}
+  .k.f{background:var(--fn);color:#f2f5f9;font-size:calc(var(--b)*.37);font-weight:500;letter-spacing:-.3px}
   .k.f:active{background:var(--fn-a)}
-  .k.o{background:var(--op);color:#14181f;font-weight:500;font-size:calc(var(--b)*.5)}
+  .k.o{background:var(--op);color:#14181f}
+  .k .op{width:calc(var(--b)*.42);height:calc(var(--b)*.42);display:block}
+  .k.n{font-size:calc(var(--b)*.46);font-weight:400;font-variant-numeric:tabular-nums}
   .k.o:active{background:var(--op-a)}
   .k.o.sel{background:#14181f;color:var(--op);box-shadow:inset 0 0 0 2px var(--op)}
   .k.i{height:var(--ih);background:var(--inch);font-size:calc(var(--ih)*.4);flex-direction:row;gap:4px;line-height:1;padding:0 4px}
@@ -62,11 +71,13 @@
   .k.i.del{background:#7a2f33}
   .k.i.del:active{background:#a8444a}
   .k.i.del small{color:#ffd9d4}
-  .k.zero{grid-column:span 2;justify-content:flex-start;padding-left:calc(var(--w)*.38)}
+  .k.zero{grid-column:span 2;justify-content:flex-start;padding:0}
+  .k.zero span{width:var(--w);text-align:center}
   .k.i.dis{opacity:.35}
-  .irow{display:contents}
-  .ver{flex:0 0 auto;text-align:center;color:#4f5d6e;font-size:11px;margin-top:8px;letter-spacing:.2px}
-  .irow.hide .k{display:none}
+  .pm{width:calc(var(--b)*.5);height:calc(var(--b)*.5);display:block}
+  .irow{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+  .ver{flex:0 0 auto;text-align:center;color:#4f5d6e;font-size:11px;margin-top:18px;letter-spacing:.2px}
+  .irow.hide{display:none}
 </style>
 </head>
 <body>
@@ -78,13 +89,13 @@
     </div>
     <button class="prec" id="precBtn">1/16</button>
     <div class="seg" id="fmtSeg">
-      <button data-fmt="ftin">ft·in</button>
       <button data-fmt="in">in</button>
       <button data-fmt="cm">cm</button>
     </div>
   </div>
 
-  <div class="screen">
+  <div class="screen" id="screen">
+    <div class="pullhint" id="pullhint">↓ 당겨서 지우기</div>
     <div class="expr" id="expr"></div>
     <div class="main" id="main">0</div>
     <div class="conv" id="conv"></div>
@@ -92,32 +103,31 @@
 
   <div class="pad" id="pad">
     <div class="irow" id="irow">
-      <button class="k i" data-k="ft">'<small>피트</small></button>
-      <button class="k i" data-k="in">"<small>인치</small></button>
-      <button class="k i" data-k="frac">a/b<small>분수</small></button>
-      <button class="k i del" data-k="back"><small>지우기</small></button>
+      <button class="k i" data-k="in"><small>inch</small></button>
+      <button class="k i" data-k="frac"><small>a/b</small></button>
+      <button class="k i del" data-k="back"><small>Clear</small></button>
     </div>
     <button class="k f" data-k="ac" id="acKey">AC</button>
-    <button class="k f" data-k="neg">⁺∕₋</button>
+    <button class="k f" data-k="neg"><svg class="pm" viewBox="0 0 40 40" aria-label="plus minus"><g stroke="currentColor" stroke-width="3.4" stroke-linecap="round" fill="none"><path d="M11 5v13M4.5 11.5h13"/><path d="M13 28 L28 13"/><path d="M23 30h13"/></g></svg></button>
     <button class="k f" data-k="pct">%</button>
-    <button class="k o" data-k="÷">÷</button>
+    <button class="k o" data-k="÷"><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M8 20h24"/></g><circle cx="20" cy="10.5" r="3" fill="currentColor"/><circle cx="20" cy="29.5" r="3" fill="currentColor"/></svg></button>
     <button class="k n" data-k="7">7</button>
     <button class="k n" data-k="8">8</button>
     <button class="k n" data-k="9">9</button>
-    <button class="k o" data-k="×">×</button>
+    <button class="k o" data-k="×"><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M11.5 11.5L28.5 28.5M28.5 11.5L11.5 28.5"/></g></svg></button>
     <button class="k n" data-k="4">4</button>
     <button class="k n" data-k="5">5</button>
     <button class="k n" data-k="6">6</button>
-    <button class="k o" data-k="−">−</button>
+    <button class="k o" data-k="−"><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M8 20h24"/></g></svg></button>
     <button class="k n" data-k="1">1</button>
     <button class="k n" data-k="2">2</button>
     <button class="k n" data-k="3">3</button>
-    <button class="k o" data-k="+">+</button>
-    <button class="k n zero" data-k="0">0</button>
+    <button class="k o" data-k="+"><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M20 8v24M8 20h24"/></g></svg></button>
+    <button class="k n zero" data-k="0"><span>0</span></button>
     <button class="k n" data-k=".">.</button>
-    <button class="k o" data-k="=">=</button>
+    <button class="k o" data-k="="><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M8 14.5h24M8 25.5h24"/></g></svg></button>
   </div>
-  <div class="ver">Version 1.0 · Nov 13, 2026</div>
+  <div class="ver">Version 1.9 · Nov 13, 2026</div>
 </div>
 
 <script>
@@ -128,8 +138,8 @@
     set(k, v){ try{ localStorage.setItem('inchcalc.'+k, v); }catch(e){} }
   };
   let mode = store.get('mode','inch');   // std | inch
-  let fmt  = store.get('fmt','ftin');    // ftin | in | cm
-  if (fmt === 'mm') fmt = 'cm';
+  let fmt  = store.get('fmt','in');    // in | cm
+  if (fmt !== 'cm') fmt = 'in';
   let prec = +store.get('prec','16');
 
   // ---------- calculator state ----------
@@ -227,7 +237,7 @@
       const inPart = (inch || !fr ? inch : '') + (inch && fr ? ' ' : '') + fr + '"';
       s = ft ? `${ft.toLocaleString('en-US')}' ${inPart}` : inPart;
     }
-    return (p.approx ? '≈' : '') + p.sign + s;
+    return p.sign + s;
   }
   function fmtVal(x, style){
     if (x.dim === 1) return fmtLen(x.v, style);
@@ -239,7 +249,7 @@
   function render(){
     document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
     document.querySelectorAll('#fmtSeg button').forEach(b => b.classList.toggle('on', b.dataset.fmt === fmt));
-    $('precBtn').textContent = '1/' + prec;
+    $('precBtn').innerHTML = '<span class="pl">눈금</span>1/' + prec;
     $('precBtn').style.visibility = mode === 'inch' ? 'visible' : 'hidden';
     $('fmtSeg').style.visibility = mode === 'inch' ? 'visible' : 'hidden';
         $('irow').classList.toggle('hide', mode !== 'inch');
@@ -259,10 +269,9 @@
     conv.innerHTML = '';
     if (mode === 'inch' && cur && cur.dim === 1){
       const items = [];
-      if (fmt !== 'ftin') items.push([fmtLen(cur.v,'ftin'), '']);
+      if (!entering && fmt !== 'cm' && fracParts(cur.v).approx){ const n = document.createElement('span'); n.className = 'chip rnd'; n.textContent = '1/' + prec + ' 반올림'; conv.appendChild(n); }
       if (fmt !== 'in')   items.push([fmtLen(cur.v,'in'), '']);
       items.push([fmtNum(cur.v, 8), 'in']);
-      items.push([fmtNum(cur.v/12, 8), 'ft']);
       items.push([fmtNum(cur.v*25.4, 8), 'mm']);
       if (fmt !== 'cm') items.push([fmtNum(cur.v*2.54, 8), 'cm']);
       items.forEach(([a,u]) => { const c = document.createElement('span'); c.className='chip'; c.innerHTML = a + (u?`<b>${u}</b>`:''); conv.appendChild(c); });
@@ -369,7 +378,33 @@
   document.addEventListener('touchmove', e => { if (!e.target.closest('.conv')) e.preventDefault(); }, {passive:false});
 
   // tap display to delete last digit (like swiping on iPhone)
-  $('main').addEventListener('click', () => { if (entering && buf){ buf = buf.slice(0,-1); render(); } });
+  let pulled = false;
+  $('main').addEventListener('click', () => { if (pulled){ pulled = false; return; } if (entering && buf){ buf = buf.slice(0,-1); render(); } });
+
+  // pull the display down to clear everything
+  (() => {
+    const sc = $('screen'), hint = $('pullhint'), LIM = 70;
+    let y0 = null, dy = 0;
+    sc.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; sc.classList.add('drag'); }, {passive:true});
+    sc.addEventListener('touchmove', e => {
+      if (y0 === null) return;
+      dy = Math.max(0, e.touches[0].clientY - y0);
+      const d = Math.min(dy, 120) * 0.2, o = 1 - Math.min(1, dy / LIM) * 0.7;
+      ['expr','main'].forEach(id => { $(id).style.transform = `translateY(${d}px)`; }); ['expr','main','conv'].forEach(id => { $(id).style.opacity = o; });
+      hint.style.opacity = Math.min(1, dy / LIM);
+      hint.classList.toggle('ready', dy >= LIM);
+      hint.textContent = dy >= LIM ? '놓으면 지워져요' : '↓ 당겨서 지우기';
+    }, {passive:true});
+    const end = () => {
+      if (y0 === null) return;
+      sc.classList.remove('drag'); ['expr','main','conv'].forEach(id => { $(id).style.transform = ''; $(id).style.opacity = ''; }); hint.style.opacity = 0;
+      if (dy > 10) pulled = true;
+      if (dy >= LIM){ press('ac'); press('ac'); if (navigator.vibrate) try{ navigator.vibrate(10); }catch(e){} }
+      y0 = null; dy = 0;
+      setTimeout(() => { pulled = false; }, 400);
+    };
+    sc.addEventListener('touchend', end); sc.addEventListener('touchcancel', end);
+  })();
 
   render();
 })();
