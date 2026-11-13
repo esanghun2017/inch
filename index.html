@@ -39,9 +39,9 @@
   .opts .seg button{font-size:12px;padding:5px 9px}
   .screen{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-height:130px;padding:0 8px 10px}
   .screen{position:relative}
-  .screen .expr,.screen .main,.screen .conv{transition:transform .25s ease,opacity .25s ease}
-  .screen.drag .expr,.screen.drag .main,.screen.drag .conv{transition:none}
-  .pullhint{position:absolute;left:0;right:0;top:0;text-align:center;font-size:14px;color:#7d8a99;opacity:0;transition:opacity .15s}
+  .pullhint{position:fixed;left:0;right:0;top:calc(14px + env(safe-area-inset-top));text-align:center;font-size:14px;color:#7d8a99;opacity:0;transition:opacity .15s;pointer-events:none}
+  #app{transition:transform .35s cubic-bezier(.2,.9,.3,1);will-change:transform}
+  #app.drag{transition:none}
   .pullhint.ready{color:#ffc928}
   .expr{color:#7d8a99;font-size:20px;text-align:right;min-height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr}
   .main{flex:0 0 auto;color:#f4f1e8;font-weight:300;text-align:right;white-space:nowrap;overflow-x:hidden;overflow-y:visible;line-height:1.2;padding:4px 0;font-size:64px;letter-spacing:-1px}
@@ -81,7 +81,8 @@
 </style>
 </head>
 <body>
-<div class="app">
+<div class="pullhint" id="pullhint">↓ 당겨서 지우기</div>
+<div class="app" id="app">
   <div class="top">
     <div class="seg" id="modeSeg">
       <button data-mode="std">일반</button>
@@ -95,7 +96,6 @@
   </div>
 
   <div class="screen" id="screen">
-    <div class="pullhint" id="pullhint">↓ 당겨서 지우기</div>
     <div class="expr" id="expr"></div>
     <div class="main" id="main">0</div>
     <div class="conv" id="conv"></div>
@@ -127,7 +127,7 @@
     <button class="k n" data-k=".">.</button>
     <button class="k o" data-k="="><svg class="op" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"><path d="M8 14.5h24M8 25.5h24"/></g></svg></button>
   </div>
-  <div class="ver">Version 1.9 · Nov 13, 2026</div>
+  <div class="ver">Version 2.0 · Nov 13, 2026</div>
 </div>
 
 <script>
@@ -381,29 +381,32 @@
   let pulled = false;
   $('main').addEventListener('click', () => { if (pulled){ pulled = false; return; } if (entering && buf){ buf = buf.slice(0,-1); render(); } });
 
-  // pull the display down to clear everything
+  // pull the whole screen down (like a browser) to clear everything
   (() => {
-    const sc = $('screen'), hint = $('pullhint'), LIM = 70;
+    const app = $('app'), hint = $('pullhint'), LIM = 80;
     let y0 = null, dy = 0;
-    sc.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; dy = 0; sc.classList.add('drag'); }, {passive:true});
-    sc.addEventListener('touchmove', e => {
+    const off = d => d <= LIM ? d * 0.55 : LIM * 0.55 + (d - LIM) * 0.2;
+    app.addEventListener('touchstart', e => {
+      if (e.target.closest('.k, button')) { y0 = null; return; }
+      y0 = e.touches[0].clientY; dy = 0; app.classList.add('drag');
+    }, {passive:true});
+    app.addEventListener('touchmove', e => {
       if (y0 === null) return;
       dy = Math.max(0, e.touches[0].clientY - y0);
-      const d = Math.min(dy, 120) * 0.2, o = 1 - Math.min(1, dy / LIM) * 0.7;
-      ['expr','main'].forEach(id => { $(id).style.transform = `translateY(${d}px)`; }); ['expr','main','conv'].forEach(id => { $(id).style.opacity = o; });
+      app.style.transform = `translateY(${Math.min(off(dy), 110)}px)`;
       hint.style.opacity = Math.min(1, dy / LIM);
       hint.classList.toggle('ready', dy >= LIM);
       hint.textContent = dy >= LIM ? '놓으면 지워져요' : '↓ 당겨서 지우기';
     }, {passive:true});
     const end = () => {
       if (y0 === null) return;
-      sc.classList.remove('drag'); ['expr','main','conv'].forEach(id => { $(id).style.transform = ''; $(id).style.opacity = ''; }); hint.style.opacity = 0;
+      app.classList.remove('drag'); app.style.transform = ''; hint.style.opacity = 0;
       if (dy > 10) pulled = true;
       if (dy >= LIM){ press('ac'); press('ac'); if (navigator.vibrate) try{ navigator.vibrate(10); }catch(e){} }
       y0 = null; dy = 0;
       setTimeout(() => { pulled = false; }, 400);
     };
-    sc.addEventListener('touchend', end); sc.addEventListener('touchcancel', end);
+    app.addEventListener('touchend', end); app.addEventListener('touchcancel', end);
   })();
 
   render();
